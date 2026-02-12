@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: frutmax_db
+    restart: always
+    environment:
+      POSTGRES_DB: frutmax
+      POSTGRES_USER: frutmax_user
+      POSTGRES_PASSWORD: frutmax_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frutmax_user -d frutmax"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: frutmax_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: frutmax-secret-key-dev-only
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      POSTGRES_DB: frutmax
+      POSTGRES_USER: frutmax_user
+      POSTGRES_PASSWORD: frutmax_pass
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      SENTRY_DSN: ""
+      SENTRY_ENVIRONMENT: development
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
+    container_name: frutmax_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

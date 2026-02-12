@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'frutmax_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'frutmax_db'),
+        'NAME': os.getenv('POSTGRES_DB', 'frutmax'),
         'USER': os.getenv('POSTGRES_USER', 'frutmax_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'frutmax_pass'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
