@@ -96,3 +96,42 @@ class Fruta(models.Model):
         elif dias <= 7:
             return 'atencao'
         return 'ok'
+
+
+class MovimentacaoEstoque(models.Model):
+    """Registro de entradas e saidas de estoque."""
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('saida', 'Saída'),
+    ]
+
+    fruta = models.ForeignKey(
+        Fruta,
+        on_delete=models.CASCADE,
+        related_name='movimentacoes'
+    )
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    observacao = models.TextField(blank=True, default='')
+    data_movimentacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_movimentacao']
+        verbose_name = 'Movimentação de Estoque'
+        verbose_name_plural = 'Movimentações de Estoque'
+
+    def __str__(self):
+        return f'{self.tipo.capitalize()} - {self.fruta.nome} ({self.quantidade})'
+
+    def save(self, *args, **kwargs):
+        # Se for uma nova movimentacao, atualiza o estoque da fruta
+        if not self.pk:
+            if self.tipo == 'entrada':
+                self.fruta.quantidade += self.quantidade
+            elif self.tipo == 'saida':
+                if self.fruta.quantidade >= self.quantidade:
+                    self.fruta.quantidade -= self.quantidade
+                else:
+                    self.fruta.quantidade = 0
+            self.fruta.save()
+        super().save(*args, **kwargs)

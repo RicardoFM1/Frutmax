@@ -13,6 +13,6 @@ def trigger_error(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('estoque.urls')),
+    path('', include('estoque.urls')),
     path('sentry-debug/', trigger_error),
 ]

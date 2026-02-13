@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     dos2unix \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

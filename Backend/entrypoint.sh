@@ -2,16 +2,7 @@
 
 echo "Aguardando o PostgreSQL..."
 
-while ! python -c "
-import socket
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    s.connect(('db', 5432))
-    s.close()
-    exit(0)
-except:
-    exit(1)
-" 2>/dev/null; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
     echo "PostgreSQL nao esta pronto ainda. Aguardando..."
     sleep 2
 done

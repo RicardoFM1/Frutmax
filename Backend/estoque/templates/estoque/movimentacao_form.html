@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        padding: 0.8rem;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        padding-top: 1.5rem;
+    }
+
+    .movement-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .type-option {
+        border: 2px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .type-option input {
+        display: none;
+    }
+
+    .type-option:hover {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    .type-option.active-entrada {
+        border-color: var(--primary);
+        background: #e8f8f5;
+        color: var(--primary);
+    }
+
+    .type-option.active-saida {
+        border-color: var(--danger);
+        background: #fdedec;
+        color: var(--danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <header>
+        <h1>Registrar Movimentação</h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancelar</a>
+    </header>
+
+    <div class="card">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_fruta">Selecionar Fruta</label>
+                <select name="fruta" id="id_fruta" class="form-control" required>
+                    <option value="">Escolha uma fruta...</option>
+                    {% for choice in form.fields.fruta.queryset %}
+                    <option value="{{ choice.pk }}">{{ choice.nome }} (Atual: {{ choice.quantidade }}{{ choice.unidade
+                        }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Tipo de
+                Operação</label>
+            <div class="movement-type-selector">
+                <label id="label-entrada" class="type-option">
+                    <input type="radio" name="tipo" value="entrada" required onclick="updateType('entrada')">
+                    📥 Entrada de Estoque
+                </label>
+                <label id="label-saida" class="type-option">
+                    <input type="radio" name="tipo" value="saida" required onclick="updateType('saida')">
+                    📤 Saída de Estoque
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="id_quantidade">Quantidade</label>
+                <input type="number" name="quantidade" id="id_quantidade" class="form-control" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="id_observacao">Observação (Opcional)</label>
+                <textarea name="observacao" id="id_observacao" class="form-control" rows="2"
+                    placeholder="Ex: Reposição lote #123 ou Venda Balcão"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Confirmar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateType(type) {
+        document.getElementById('label-entrada').classList.remove('active-entrada');
+        document.getElementById('label-saida').classList.remove('active-saida');
+
+        if (type === 'entrada') {
+            document.getElementById('label-entrada').classList.add('active-entrada');
+        } else {
+            document.getElementById('label-saida').classList.add('active-saida');
+        }
+    }
+</script>
+{% endblock %}

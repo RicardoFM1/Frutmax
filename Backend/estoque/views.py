@@ -103,3 +103,85 @@ def dashboard(request):
 
     serializer = DashboardSerializer(data)
     return Response(serializer.data)
+
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, TemplateView
+from django.urls import reverse_lazy
+from .models import Fruta, Categoria, MovimentacaoEstoque
+
+
+class DashboardView(TemplateView):
+    template_name = 'estoque/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hoje = timezone.now().date()
+        limite_vencimento = hoje + timedelta(days=7)
+        frutas_ativas = Fruta.objects.filter(ativo=True)
+
+        context['total_frutas'] = frutas_ativas.count()
+        context['total_categorias'] = Categoria.objects.count()
+        context['estoque_total'] = frutas_ativas.aggregate(total=Sum('quantidade'))['total'] or 0
+        context['frutas_vencidas'] = frutas_ativas.filter(data_validade__lt=hoje).count()
+        context['frutas_vencendo'] = frutas_ativas.filter(
+            data_validade__gte=hoje,
+            data_validade__lte=limite_vencimento
+        ).count()
+        context['estoque_baixo'] = frutas_ativas.filter(
+            quantidade__lte=F('estoque_minimo')
+        ).count()
+        context['valor_total_estoque'] = frutas_ativas.aggregate(
+            total=Sum(F('preco') * F('quantidade'))
+        )['total'] or 0
+        
+        context['recent_movimentacoes'] = MovimentacaoEstoque.objects.all()[:5]
+        context['frutas_estoque_baixo'] = frutas_ativas.filter(
+            quantidade__lte=F('estoque_minimo')
+        ).order_by('quantidade')[:5]
+
+        return context
+
+
+class FrutaListView(ListView):
+    model = Fruta
+    template_name = 'estoque/fruta_list.html'
+    context_object_name = 'frutas'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Fruta.objects.filter(ativo=True).select_related('categoria')
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(nome__icontains=search) | 
+                Q(fornecedor__icontains=search)
+            )
+        return queryset
+
+
+class FrutaCreateView(CreateView):
+    model = Fruta
+    template_name = 'estoque/fruta_form.html'
+    fields = [
+        'nome', 'categoria', 'descricao', 'preco', 
+        'quantidade', 'unidade', 'data_validade', 
+        'fornecedor', 'estoque_minimo', 'ativo'
+    ]
+    success_url = reverse_lazy('fruta-list')
+
+
+class FrutaUpdateView(UpdateView):
+    model = Fruta
+    template_name = 'estoque/fruta_form.html'
+    fields = [
+        'nome', 'categoria', 'descricao', 'preco', 
+        'quantidade', 'unidade', 'data_validade', 
+        'fornecedor', 'estoque_minimo', 'ativo'
+    ]
+    success_url = reverse_lazy('fruta-list')
+
+
+class MovimentacaoCreateView(CreateView):
+    model = MovimentacaoEstoque
+    template_name = 'estoque/movimentacao_form.html'
+    fields = ['fruta', 'tipo', 'quantidade', 'observacao']
+    success_url = reverse_lazy('dashboard')

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, min-minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: block;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-entrada {
+        background: #e8f8f5;
+        color: #27ae60;
+    }
+
+    .badge-saida {
+        background: #fdedec;
+        color: #e74c3c;
+    }
+
+    .badge-warning {
+        background: #fef9e7;
+        color: #f1c40f;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #95a5a6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Dashboard de Estoque</h1>
+    <div class="header-actions">
+        <a href="{% url 'movimentacao-create' %}" class="btn btn-primary">➕ Nova Movimentação</a>
+    </div>
+</header>
+
+<div class="stats-grid">
+    <div class="card stat-card">
+        <span class="stat-value">{{ total_frutas }}</span>
+        <span class="stat-label">Itens Cadastrados</span>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-value" style="color: var(--secondary)">{{ estoque_total }}</span>
+        <span class="stat-label">Total em Estoque</span>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-value" style="color: var(--danger)">{{ estoque_baixo }}</span>
+        <span class="stat-label">Baixo Estoque</span>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-value" style="color: var(--accent)">R$ {{ valor_total_estoque }}</span>
+        <span class="stat-label">Valor Estimado</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>Últimas Movimentações</h3>
+        {% if recent_movimentacoes %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Fruta</th>
+                    <th>Tipo</th>
+                    <th>Qtd</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in recent_movimentacoes %}
+                <tr>
+                    <td>{{ mov.data_movimentacao|date:"d/m H:i" }}</td>
+                    <td><strong>{{ mov.fruta.nome }}</strong></td>
+                    <td><span class="badge badge-{{ mov.tipo }}">{{ mov.tipo|upper }}</span></td>
+                    <td>{{ mov.quantidade }} {{ mov.fruta.unidade }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">Nenhuma movimentação recente.</div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Alerta de Reposição</h3>
+        {% if frutas_estoque_baixo %}
+        <table class="table">
+            <tbody>
+                {% for fruta in frutas_estoque_baixo %}
+                <tr>
+                    <td>
+                        <strong>{{ fruta.nome }}</strong><br>
+                        <small>{{ fruta.quantidade }}{{ fruta.unidade }} / min {{ fruta.estoque_minimo }}</small>
+                    </td>
+                    <td style="text-align: right;">
+                        <span class="badge badge-warning">Crítico</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">Estoque normalizado.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
