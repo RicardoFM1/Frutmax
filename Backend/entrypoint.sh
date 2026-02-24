@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "Aguardando o PostgreSQL..."
+echo "Aguardando o PostgreSQL em $POSTGRES_HOST (usuário: $POSTGRES_USER)..."
 
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
-    echo "PostgreSQL nao esta pronto ainda. Aguardando..."
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q'; do
+    echo "PostgreSQL não está pronto ainda ou dados de acesso incorretos. Aguardando..."
     sleep 2
 done
 

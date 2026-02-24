@@ -1,5 +1,6 @@
 # v0 runtime files (should only exist in preview, not in git)
 __v0_runtime_loader.js
+.env
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 

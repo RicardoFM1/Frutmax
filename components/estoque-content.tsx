@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,42 +14,59 @@ import {
 import { StatusBadge } from "./status-badge";
 import { FrutaFormDialog } from "./fruta-form-dialog";
 import { ConfirmDialog } from "./confirm-dialog";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
-import type { FrutaResumo, Fruta, Categoria, FrutaFormData } from "@/lib/api";
+import { Plus, Search, Pencil, Trash2, Filter, Download } from "lucide-react";
+import type { FrutaResumo, Fruta, Categoria, Fornecedor, FrutaFormData } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface EstoqueContentProps {
   frutas: FrutaResumo[];
   categorias: Categoria[];
-  onAdd: (data: FrutaFormData) => void;
-  onUpdate: (id: number, data: FrutaFormData) => void;
-  onDelete: (id: number) => void;
-  getFruta: (id: number) => Fruta | null;
+  fornecedores: Fornecedor[];
+  onAdd: (data: FrutaFormData) => Promise<void>;
+  onUpdate: (id: number, data: FrutaFormData) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  getFruta: (id: number) => Promise<Fruta | null>;
 }
 
 export function EstoqueContent({
   frutas,
   categorias,
+  fornecedores,
   onAdd,
   onUpdate,
   onDelete,
   getFruta,
 }: EstoqueContentProps) {
   const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editingFruta, setEditingFruta] = useState<Fruta | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const filtered = frutas.filter(
-    (f) =>
-      f.nome.toLowerCase().includes(search.toLowerCase()) ||
-      f.categoria_nome.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = frutas.filter((f) => {
+    const matchesSearch = f.nome.toLowerCase().includes(search.toLowerCase());
+    const matchesCat = catFilter === "all" || f.categoria_nome === catFilter;
+    return matchesSearch && matchesCat;
+  });
 
-  const handleEdit = (id: number) => {
-    const fruta = getFruta(id);
-    setEditingFruta(fruta);
-    setFormOpen(true);
+  const handleEdit = async (id: number) => {
+    try {
+      const fruta = await getFruta(id);
+      setEditingFruta(fruta);
+      setFormOpen(true);
+    } catch (error) {
+      toast.error("Erro ao carregar detalhes do produto.");
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -57,73 +74,106 @@ export function EstoqueContent({
     setDeleteOpen(true);
   };
 
-  const handleFormSubmit = (data: FrutaFormData) => {
-    if (editingFruta) {
-      onUpdate(editingFruta.id, data);
-    } else {
-      onAdd(data);
+  const handleFormSubmit = async (data: FrutaFormData) => {
+    setLoading(true);
+    try {
+      if (editingFruta) {
+        await onUpdate(editingFruta.id, data);
+        toast.success("Produto atualizado com sucesso!");
+      } else {
+        await onAdd(data);
+        toast.success("Produto cadastrado com sucesso!");
+      }
+      setFormOpen(false);
+      setEditingFruta(null);
+    } catch (error) {
+      toast.error("Erro ao salvar produto.");
+    } finally {
+      setLoading(false);
     }
-    setFormOpen(false);
-    setEditingFruta(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingId) {
-      onDelete(deletingId);
+      try {
+        await onDelete(deletingId);
+        toast.success("Produto removido com sucesso!");
+      } catch (error) {
+        toast.error("Erro ao remover produto.");
+      }
     }
     setDeleteOpen(false);
     setDeletingId(null);
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
             Estoque
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gerencie as frutas do estoque
+          <p className="mt-1 text-muted-foreground">
+            Controle e gerenciamento de inventário.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingFruta(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Fruta
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="hidden sm:flex">
+            <Download className="mr-2 h-4 w-4" />
+            Exportar
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingFruta(null);
+              setFormOpen(true);
+            }}
+            className="bg-primary hover:bg-primary/90 shadow-sm"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Produto
+          </Button>
+        </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Buscar frutas..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 bg-card border-border h-11"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={catFilter} onValueChange={setCatFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] h-11 bg-card">
+              <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
+              {categorias.map((cat) => (
+                <SelectItem key={cat.id} value={cat.nome}>
+                  {cat.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-muted-foreground">Nome</TableHead>
-              <TableHead className="text-muted-foreground">Categoria</TableHead>
-              <TableHead className="text-right text-muted-foreground">
-                {"Preco (R$)"}
-              </TableHead>
-              <TableHead className="text-right text-muted-foreground">
-                Quantidade
-              </TableHead>
-              <TableHead className="text-muted-foreground">Validade</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-right text-muted-foreground">
-                Acoes
-              </TableHead>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="hover:bg-transparent border-border">
+              <TableHead className="font-bold py-4">Produto</TableHead>
+              <TableHead className="font-bold">Categoria</TableHead>
+              <TableHead className="text-right font-bold">Preço</TableHead>
+              <TableHead className="text-right font-bold">Saldo</TableHead>
+              <TableHead className="font-bold">Validade</TableHead>
+              <TableHead className="font-bold">Status</TableHead>
+              <TableHead className="text-right font-bold px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,51 +181,66 @@ export function EstoqueContent({
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="py-8 text-center text-muted-foreground"
+                  className="py-12 text-center text-muted-foreground"
                 >
-                  Nenhuma fruta encontrada.
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="h-8 w-8 text-muted-foreground/20" />
+                    <p>Nenhum produto encontrado com os filtros atuais.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((fruta) => (
-                <TableRow key={fruta.id}>
-                  <TableCell className="font-medium text-card-foreground">
-                    {fruta.nome}
+                <TableRow key={fruta.id} className="border-border hover:bg-muted/30 transition-colors">
+                  <TableCell className="py-4">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-card-foreground">{fruta.nome}</span>
+                      {fruta.estoque_baixo && (
+                        <span className="text-[10px] font-black text-destructive uppercase tracking-tighter">Estoque Crítico</span>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {fruta.categoria_nome || "-"}
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-lg bg-secondary/50 px-2 py-1 text-xs font-semibold text-secondary-foreground">
+                      {fruta.categoria_nome || "Sem Categ."}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-right text-card-foreground">
-                    {Number(fruta.preco).toLocaleString("pt-BR", {
+                  <TableCell className="text-right font-medium">
+                    R$ {Number(fruta.preco).toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right text-card-foreground">
-                    {fruta.quantidade} {fruta.unidade}
+                  <TableCell className="text-right">
+                    <span className={cn(
+                      "font-bold",
+                      fruta.estoque_baixo ? "text-destructive" : "text-card-foreground"
+                    )}>
+                      {fruta.quantidade} {fruta.unidade}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-sm text-muted-foreground">
                     {new Date(fruta.data_validade + "T00:00:00").toLocaleDateString("pt-BR")}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={fruta.status_validade} />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right px-6">
                     <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
                         onClick={() => handleEdit(fruta.id)}
-                        aria-label={`Editar ${fruta.nome}`}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive transition-colors"
                         onClick={() => handleDelete(fruta.id)}
-                        aria-label={`Remover ${fruta.nome}`}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -191,14 +256,16 @@ export function EstoqueContent({
         onOpenChange={setFormOpen}
         fruta={editingFruta}
         categorias={categorias}
+        fornecedores={fornecedores}
         onSubmit={handleFormSubmit}
+        loading={loading}
       />
 
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Remover Fruta"
-        description="Tem certeza que deseja remover esta fruta do estoque? Esta acao nao pode ser desfeita."
+        title="Remover do Estoque"
+        description={`Tem certeza que deseja remover este produto definitivamente?`}
         onConfirm={handleConfirmDelete}
       />
     </div>

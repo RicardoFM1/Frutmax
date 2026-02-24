@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: frutmax_db
     restart: always
     environment:
@@ -54,6 +54,13 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
+      SENTRY_SUPPRESS_TURBOPACK_WARNING: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - backend
 

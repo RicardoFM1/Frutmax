@@ -5,6 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'frutas', views.FrutaViewSet)
 router.register(r'categorias', views.CategoriaViewSet)
+router.register(r'fornecedores', views.FornecedorViewSet)
 
 
 urlpatterns = [

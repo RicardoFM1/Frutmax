@@ -9,7 +9,12 @@ import {
   Tags,
   AlertTriangle,
   Package,
+  Users,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Button } from "./ui/button";
 
 const navItems = [
   {
@@ -32,10 +37,16 @@ const navItems = [
     href: "/alertas",
     icon: AlertTriangle,
   },
+  {
+    label: "Fornecedores",
+    href: "/fornecedores",
+    icon: Users,
+  },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-card">
@@ -79,10 +90,22 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      <div className="border-t border-border px-6 py-4">
-        <p className="text-xs text-muted-foreground">
-          Frutmax v1.0.0
-        </p>
+      <div className="border-t border-border px-4 py-4">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-muted-foreground">
+            Frutmax v1.0.0
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
       </div>
     </aside>
   );

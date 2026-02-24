@@ -10,6 +10,17 @@ export interface Categoria {
   atualizado_em: string;
 }
 
+export interface Fornecedor {
+  id: number;
+  nome: string;
+  email: string | null;
+  telefone: string;
+  endereco: string;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
 export interface Fruta {
   id: number;
   nome: string;
@@ -20,7 +31,8 @@ export interface Fruta {
   quantidade: number;
   unidade: "kg" | "un" | "cx";
   data_validade: string;
-  fornecedor: string;
+  fornecedor: number | null;
+  fornecedor_nome: string;
   estoque_minimo: number;
   ativo: boolean;
   esta_vencida: boolean;
@@ -51,6 +63,7 @@ export interface Dashboard {
   frutas_vencendo: number;
   estoque_baixo: number;
   valor_total_estoque: string;
+  estoque_por_unidade: Record<string, number>;
 }
 
 export interface PaginatedResponse<T> {
@@ -68,7 +81,7 @@ export interface FrutaFormData {
   quantidade: number;
   unidade: string;
   data_validade: string;
-  fornecedor: string;
+  fornecedor: number | null;
   estoque_minimo: number;
   ativo: boolean;
 }
@@ -138,5 +151,25 @@ export const api = {
       }),
     delete: (id: number) =>
       apiFetch<void>(`/categorias/${id}/`, { method: "DELETE" }),
+  },
+
+  fornecedores: {
+    list: (params?: string) =>
+      apiFetch<PaginatedResponse<Fornecedor>>(
+        `/fornecedores/${params ? `?${params}` : ""}`
+      ),
+    get: (id: number) => apiFetch<Fornecedor>(`/fornecedores/${id}/`),
+    create: (data: Partial<Fornecedor>) =>
+      apiFetch<Fornecedor>("/fornecedores/", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: number, data: Partial<Fornecedor>) =>
+      apiFetch<Fornecedor>(`/fornecedores/${id}/`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: number) =>
+      apiFetch<void>(`/fornecedores/${id}/`, { method: "DELETE" }),
   },
 };

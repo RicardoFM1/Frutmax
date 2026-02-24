@@ -5,11 +5,12 @@ from django.db.models import Sum, F, Q
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Fruta, Categoria
+from .models import Fruta, Categoria, Fornecedor
 from .serializers import (
     FrutaSerializer,
     FrutaResumoSerializer,
     CategoriaSerializer,
+    FornecedorSerializer,
     DashboardSerializer,
 )
 
@@ -19,6 +20,15 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     search_fields = ['nome']
+    ordering_fields = ['nome', 'criado_em']
+
+
+class FornecedorViewSet(viewsets.ModelViewSet):
+    """ViewSet para CRUD de fornecedores."""
+    queryset = Fornecedor.objects.all()
+    serializer_class = FornecedorSerializer
+    search_fields = ['nome', 'email', 'telefone']
+    filterset_fields = ['ativo']
     ordering_fields = ['nome', 'criado_em']
 
 
@@ -91,6 +101,12 @@ def dashboard(request):
         total=Sum(F('preco') * F('quantidade'))
     )['total'] or 0
 
+    # Estoque por unidade
+    estoque_por_unidade = {}
+    unidades = frutas_ativas.values('unidade').annotate(total=Sum('quantidade'))
+    for u in unidades:
+        estoque_por_unidade[u['unidade']] = u['total']
+
     data = {
         'total_frutas': total_frutas,
         'total_categorias': total_categorias,
@@ -99,6 +115,7 @@ def dashboard(request):
         'frutas_vencendo': frutas_vencendo,
         'estoque_baixo': estoque_baixo_count,
         'valor_total_estoque': valor_total,
+        'estoque_por_unidade': estoque_por_unidade,
     }
 
     serializer = DashboardSerializer(data)

@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react"
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,13 +19,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { Fruta, Categoria, FrutaFormData } from "@/lib/api";
+import type { Fruta, Categoria, Fornecedor, FrutaFormData } from "@/lib/api";
 
 interface FrutaFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fruta?: Fruta | null;
   categorias: Categoria[];
+  fornecedores: Fornecedor[];
   onSubmit: (data: FrutaFormData) => void;
   loading?: boolean;
 }
@@ -37,6 +36,7 @@ export function FrutaFormDialog({
   onOpenChange,
   fruta,
   categorias,
+  fornecedores = [],
   onSubmit,
   loading,
 }: FrutaFormDialogProps) {
@@ -48,7 +48,7 @@ export function FrutaFormDialog({
     quantidade: 0,
     unidade: "kg",
     data_validade: "",
-    fornecedor: "",
+    fornecedor: null,
     estoque_minimo: 10,
     ativo: true,
   });
@@ -76,7 +76,7 @@ export function FrutaFormDialog({
         quantidade: 0,
         unidade: "kg",
         data_validade: "",
-        fornecedor: "",
+        fornecedor: null,
         estoque_minimo: 10,
         ativo: true,
       });
@@ -90,15 +90,15 @@ export function FrutaFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg bg-card font-sans">
         <DialogHeader>
-          <DialogTitle className="text-card-foreground">
+          <DialogTitle className="text-2xl font-bold">
             {fruta ? "Editar Fruta" : "Cadastrar Nova Fruta"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="nome">Nome da Fruta</Label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="nome" className="font-semibold text-sm">Nome do Produto</Label>
             <Input
               id="nome"
               placeholder="Ex: Banana Prata"
@@ -107,12 +107,13 @@ export function FrutaFormDialog({
                 setFormData({ ...formData, nome: e.target.value })
               }
               required
+              className="bg-muted/50 focus:bg-background h-11"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="categoria">Categoria</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="categoria" className="font-semibold text-sm">Categoria</Label>
               <Select
                 value={formData.categoria?.toString() || ""}
                 onValueChange={(v) =>
@@ -122,7 +123,7 @@ export function FrutaFormDialog({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted/50 h-11">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,15 +135,15 @@ export function FrutaFormDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="unidade">Unidade</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="unidade" className="font-semibold text-sm">Unidade de Medida</Label>
               <Select
                 value={formData.unidade}
                 onValueChange={(v) =>
                   setFormData({ ...formData, unidade: v })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted/50 h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,9 +155,9 @@ export function FrutaFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="preco">{"Preco (R$)"}</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="preco" className="font-semibold text-sm">{"Preço por Unidade (R$)"}</Label>
               <Input
                 id="preco"
                 type="number"
@@ -168,10 +169,11 @@ export function FrutaFormDialog({
                   setFormData({ ...formData, preco: e.target.value })
                 }
                 required
+                className="bg-muted/50 h-11"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="quantidade">Quantidade</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="quantidade" className="font-semibold text-sm">Estoque Inicial</Label>
               <Input
                 id="quantidade"
                 type="number"
@@ -184,13 +186,14 @@ export function FrutaFormDialog({
                   })
                 }
                 required
+                className="bg-muted/50 h-11"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="data_validade">Data de Validade</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="data_validade" className="font-semibold text-sm">Data de Validade</Label>
               <Input
                 id="data_validade"
                 type="date"
@@ -202,10 +205,11 @@ export function FrutaFormDialog({
                   })
                 }
                 required
+                className="bg-muted/50 h-11"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="estoque_minimo">Estoque Minimo</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="estoque_minimo" className="font-semibold text-sm">Estoque Mínimo (Alerta)</Label>
               <Input
                 id="estoque_minimo"
                 type="number"
@@ -217,45 +221,60 @@ export function FrutaFormDialog({
                     estoque_minimo: Number(e.target.value),
                   })
                 }
+                className="bg-muted/50 h-11"
               />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="fornecedor">Fornecedor</Label>
-            <Input
-              id="fornecedor"
-              placeholder="Nome do fornecedor"
-              value={formData.fornecedor}
-              onChange={(e) =>
-                setFormData({ ...formData, fornecedor: e.target.value })
+          <div className="grid gap-2">
+            <Label htmlFor="fornecedor" className="font-semibold text-sm">Fornecedor</Label>
+            <Select
+              value={formData.fornecedor?.toString() || ""}
+              onValueChange={(v) =>
+                setFormData({
+                  ...formData,
+                  fornecedor: v ? Number(v) : null,
+                })
               }
-            />
+            >
+              <SelectTrigger className="bg-muted/50 h-11">
+                <SelectValue placeholder="Selecione um fornecedor" />
+              </SelectTrigger>
+              <SelectContent>
+                {fornecedores.map((forn) => (
+                  <SelectItem key={forn.id} value={forn.id.toString()}>
+                    {forn.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="descricao">Descricao</Label>
+          <div className="grid gap-2">
+            <Label htmlFor="descricao" className="font-semibold text-sm">Detalhes Adicionais</Label>
             <Textarea
               id="descricao"
-              placeholder="Observacoes sobre a fruta..."
+              placeholder="Descreva lote, características ou observações..."
               value={formData.descricao}
               onChange={(e) =>
                 setFormData({ ...formData, descricao: e.target.value })
               }
               rows={3}
+              className="bg-muted/50 focus:bg-background"
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-2 gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="h-11"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : fruta ? "Atualizar" : "Cadastrar"}
+            <Button type="submit" disabled={loading} className="h-11 bg-primary hover:bg-primary/90">
+              {loading ? "Salvando..." : fruta ? "Salvar Alterações" : "Cadastrar Produto"}
             </Button>
           </DialogFooter>
         </form>

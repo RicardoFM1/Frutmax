@@ -5,11 +5,11 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* package-lock.json* yarn.lock* ./
 
 RUN if [ -f pnpm-lock.yaml ]; then \
-      npm install -g pnpm && pnpm install --frozen-lockfile; \
+      npm install -g pnpm && pnpm install; \
     elif [ -f yarn.lock ]; then \
-      yarn install --frozen-lockfile; \
+      yarn install; \
     else \
-      npm install; \
+      npm install --legacy-peer-deps; \
     fi
 
 COPY app/ ./app/

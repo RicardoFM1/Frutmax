@@ -19,6 +19,25 @@ class Categoria(models.Model):
         return self.nome
 
 
+class Fornecedor(models.Model):
+    """Modelo para fornecedores de frutas."""
+    nome = models.CharField(max_length=200, unique=True)
+    email = models.EmailField(blank=True, null=True)
+    telefone = models.CharField(max_length=20, blank=True, default='')
+    endereco = models.TextField(blank=True, default='')
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'Fornecedor'
+        verbose_name_plural = 'Fornecedores'
+
+    def __str__(self):
+        return self.nome
+
+
 class Fruta(models.Model):
     """Modelo principal de frutas no estoque."""
     nome = models.CharField(max_length=200)
@@ -52,7 +71,13 @@ class Fruta(models.Model):
     data_validade = models.DateField(
         help_text='Data de validade do lote'
     )
-    fornecedor = models.CharField(max_length=200, blank=True, default='')
+    fornecedor = models.ForeignKey(
+        Fornecedor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='frutas'
+    )
     estoque_minimo = models.PositiveIntegerField(
         default=10,
         help_text='Quantidade minima antes de alertar reposicao'
