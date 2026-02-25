@@ -21,7 +21,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(
 SENTRY_DSN = os.getenv('SENTRY_DSN', '')
 if SENTRY_DSN:
     sentry_sdk.init(
-        dsn='https://afb406635d17c4def4adb47aec658331@o4510915448274944.ingest.us.sentry.io/4510915453648896',
+        dsn=SENTRY_DSN,
         send_default_pii=True,
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,

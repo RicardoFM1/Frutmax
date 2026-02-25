@@ -18,7 +18,6 @@ COPY hooks/ ./hooks/
 COPY lib/ ./lib/
 COPY public/ ./public/
 COPY next.config.mjs tsconfig.json tailwind.config.ts postcss.config.mjs components.json ./
-COPY instrumentation.ts sentry.client.config.ts sentry.server.config.ts sentry.edge.config.ts ./
 
 EXPOSE 3000
 

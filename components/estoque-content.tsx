@@ -106,95 +106,6 @@ export function EstoqueContent({
     setDeletingId(null);
   };
 
-  const handleExportPdf = () => {
-    if (filtered.length === 0) {
-      toast.error("Nao ha dados para exportar.");
-      return;
-    }
-
-    const today = new Date().toLocaleString("pt-BR");
-    const rows = filtered
-      .map(
-        (fruta) => `
-          <tr>
-            <td>${fruta.nome}</td>
-            <td>${fruta.categoria_nome || "Sem Categ."}</td>
-            <td>R$ ${Number(fruta.preco).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
-            <td>${fruta.quantidade} ${fruta.unidade}</td>
-            <td>${new Date(fruta.data_validade + "T00:00:00").toLocaleDateString("pt-BR")}</td>
-            <td>${fruta.status_validade}</td>
-          </tr>
-        `
-      )
-      .join("");
-
-    const reportHtml = `
-      <!doctype html>
-      <html lang="pt-BR">
-        <head>
-          <meta charset="utf-8" />
-          <title>Relatorio de Estoque</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
-            h1 { margin: 0 0 6px; font-size: 20px; }
-            p { margin: 0 0 16px; color: #555; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background: #f3f4f6; }
-            @media print { @page { size: A4; margin: 12mm; } }
-          </style>
-        </head>
-        <body>
-          <h1>Relatorio de Estoque - Frutmax</h1>
-          <p>Gerado em ${today}</p>
-          <table>
-            <thead>
-              <tr>
-                <th>Produto</th>
-                <th>Categoria</th>
-                <th>Preco</th>
-                <th>Saldo</th>
-                <th>Validade</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </body>
-      </html>
-    `;
-
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!doc || !iframe.contentWindow) {
-      document.body.removeChild(iframe);
-      toast.error("Nao foi possivel gerar o PDF.");
-      return;
-    }
-
-    doc.open();
-    doc.write(reportHtml);
-    doc.close();
-
-    setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
-        }
-      }, 1000);
-    }, 200);
-  };
-
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -207,7 +118,7 @@ export function EstoqueContent({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="hidden sm:flex" onClick={handleExportPdf}>
+          <Button variant="outline" className="hidden sm:flex">
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>

@@ -9,10 +9,3 @@ node_modules/
 .next/
 .env*.local
 .DS_Store
-
-# Environment files
-.env.*
-!.env.example
-Backend/.env
-Backend/.env.*
-!Backend/.env.example
