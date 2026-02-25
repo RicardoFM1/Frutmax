@@ -11,8 +11,8 @@ const nextConfig = {
 
 export default withSentryConfig(nextConfig, {
   silent: true,
-  org: "frutmax",
-  project: "frutmax-frontend",
+  org: process.env.SENTRY_ORG || "frutmax",
+  project: process.env.SENTRY_PROJECT || "frutmax-frontend",
 }, {
   widenClientFileUpload: true,
   transpileClientSDK: false,

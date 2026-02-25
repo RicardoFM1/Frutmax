@@ -7,8 +7,7 @@ from django.urls import path, include
 
 def trigger_error(request):
     """Endpoint para testar a integração com o Sentry."""
-    division_by_zero = 1 / 0  # noqa: F841
-    return division_by_zero
+    
 
 
 urlpatterns = [

@@ -22,6 +22,8 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: frutmax_backend
+    env_file:
+      - .env
     command: python manage.py runserver 0.0.0.0:8000
     restart: always
     ports:
@@ -36,8 +38,8 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
       CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
-      SENTRY_DSN: ""
-      SENTRY_ENVIRONMENT: development
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
     volumes:
       - ./Backend:/app
     depends_on:
@@ -49,11 +51,18 @@ services:
       context: .
       dockerfile: Frontend/Dockerfile
     container_name: frutmax_frontend
+    env_file:
+      - .env
     restart: always
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+      SENTRY_ORG: ${SENTRY_ORG:-frutmax}
+      SENTRY_PROJECT: ${SENTRY_PROJECT:-frutmax-frontend}
       SENTRY_SUPPRESS_TURBOPACK_WARNING: "1"
       NEXT_TELEMETRY_DISABLED: "1"
       WATCHPACK_POLLING: "true"

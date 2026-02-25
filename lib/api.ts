@@ -1,5 +1,7 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = rawApiBaseUrl.replace(/\/+$/, "").endsWith("/api")
+  ? rawApiBaseUrl.replace(/\/+$/, "")
+  : `${rawApiBaseUrl.replace(/\/+$/, "")}/api`;
 
 export interface Categoria {
   id: number;
