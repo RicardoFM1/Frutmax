@@ -1,5 +1,12 @@
-const API_BASE_URL =
+const rawApiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
+function normalizeApiBaseUrl(url: string): string {
+  const trimmed = url.trim().replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(rawApiBaseUrl);
 
 export interface Categoria {
   id: number;

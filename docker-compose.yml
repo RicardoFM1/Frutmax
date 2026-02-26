@@ -53,7 +53,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
       SENTRY_SUPPRESS_TURBOPACK_WARNING: "1"
       NEXT_TELEMETRY_DISABLED: "1"
       WATCHPACK_POLLING: "true"
